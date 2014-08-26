@@ -1,3 +1,6 @@
+Please note that while the below does work, I have modified the main.lua file and added other files so that this fork can be downloaded and/or cloned and will work right away with Corona SDK. While the modified code is far from perfect, it is useful in display how scalable the Jumper logic can be. 
+
+
 Jumper
 ======
 
