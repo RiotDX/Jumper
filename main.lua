@@ -1,38 +1,64 @@
+-- modified sample movement logic for Roland Yonaba's Jumper module. This is quick code and hasn't been tested extensively.
+
+
 display.setStatusBar(display.HiddenStatusBar)
-local cellWidth = 16
-local cellHeight = 16
-local xShift = -8
-local cellb = {}
-local callNewPath
-local touchStarted = 0
-local movingHere = false
-local path
-local rndPlot = 0
-local setX = {}
-local setY = {}
-	local pMX = 1
-	local pMY = 1
-	local aMX = 1
-	local aMY = 1
-	local timeMove = 50
-	local moveCount = 0
-	local hero
-local startx, starty = 1,1
 local performance = require('performance')
 performance:newPerformanceMeter()
+	------------------------------
+	
+	-- Forward declaring variables
+local cellWidth = 16 -- size of cell width
+local cellHeight = 16 -- size of cell height
+local xShift = -8 -- moving the cells back to center
+local cellb = {} -- cell display object table
+local callNewPath -- forward declaring pathfinding function
+local touchStarted = 0 -- touch function variable
+local movingHere = false -- path-following variable
+local path -- forward declaring pathfinding variable
+local rndPlot = 0 -- randomization holder for obstacles (non-walkable tiles).
+local rndPlotH = 6 -- randomization threshold for obstacles (non-walkable tiles). 
+local setX = {} -- x coordinate table holder for path-following
+local setY = {} -- y coordinate table holder for path-following
+local pMX = 1 -- forward declaring pathfinding variable
+local pMY = 1 -- forward declaring pathfinding variable
+local aMX = 1 -- forward declaring pathfinding variable
+local aMY = 1 -- forward declaring pathfinding variable
+local timeMove = 50 -- speed at which actor moves along path
+local moveCount = 0 -- movement counter for main timer
+local hero -- forward declaring actor variable
+local startx, starty = 1,1
+local rndSet -- forward declaring random tile population variable
+	local function resetVars() -- resets variables after movement is completed
+		pMX = 1
+		pMY = 1
+		aMX = 1
+		aMY = 1
+		moveCount = 0
+		setX = nil
+		setY = nil
+		setX = {}
+		setY = {}
+		endy = nil
+		endx = nil
+		touchStarted = 0
+		movingHere = false
+	end
+	------------------------------
+	
+	
+	
 
-	local function flipSize(obj)
+	local function flipSize(obj) -- flips and returns passed display object tile to original values
 		local function objReturn()
 			obj:setFillColor(.75,.5,.25)
-			transition.to(obj,{time=250, xScale=1})
+			transition.to(obj,{time=250, alpha=1, xScale=1}) -- returns flipped tile to original scale, color and alpha
 		end
 		transition.to(obj,{time=500, xScale=.1, onComplete=objReturn})
 	end
 
 
-local map = {}
-local rndSet
-local function callMap()
+local map = {} -- gridmap holder
+local function callMap() -- function that creates gridmap
 	for x = 1, 25 do -- column
 		map[x] = {}
 		for y = 1, 17 do --row
@@ -47,9 +73,10 @@ local function callMap()
 	end
 end
 callMap()
-map[1][1] = 0
-map[1][2] = 0
-	local function movePlayer()
+map[1][1] = 0 -- ensure that actor has a place to start!
+map[1][2] = 0 -- ensure that actor has a place to start!
+
+	local function movePlayer() -- moving actor with this function. It is called on a repeated timer and stops after the end is reached, as defined by the timer with the Lua closure below.
 		print("BEING CALLED NOW")
 		if movingHere then
 			print("number of values in setX is "..#setX)
@@ -69,8 +96,8 @@ map[1][2] = 0
 		end
 	end
 			
-	local function createRanRooms1()
-		if rndPlot < 6 then
+	local function createRanRooms1() -- this function creates the randomly generated obstacles, very quickly. This is ugly and isn't meant to display my skills at PCG. If you judge me, do it publicly so I can benefit from the experience.
+		if rndPlot < rndPlotH then -- stops the function after a certain amount of tiles are converted to obstacles
 		local wRndX1 = math.random(3,13)
 		local wRndY1 = math.random(3,13)
 		--print("wRndX1 = "..wRndX1)
@@ -93,37 +120,25 @@ map[1][2] = 0
 	for i=1, 10 do
 	createRanRooms1()
 	end
-			local function printLoc1(self, event)
+			local function printLoc1(self, event) -- the magic happens. Press down to decide where the actor will go, release to watch.
 				if movingHere == false then
 					if event.phase == "began" and touchStarted == 0 then
-						endx, endy = self.inity,self.initx
+						endx, endy = self.inity,self.initx -- create endpoint for actor's path
 						touchStarted = 1
-						callNewPath()
+						callNewPath() -- pathfinding function
 					end
 					if event.phase == "ended" and touchStarted == 1 then
 						startx, starty = self.inity,self.initx
 						movingHere = true
 						timer.performWithDelay(timeMove, movePlayer, moveCount)
 						timer.performWithDelay((timeMove*moveCount)+800, function()
-							pMX = 1
-							pMY = 1
-							aMX = 1
-							aMY = 1
-							moveCount = 0
-							setX = nil
-							setY = nil
-							setX = {}
-							setY = {}
-							endy = nil
-							endx = nil
-							touchStarted = 0
-							movingHere = false
+						resetVars() -- these reset all of the variables back to original values so that movement can take place again.
 						end, 1)
 					end
 				end
 			end
 			
-	local function createRanRooms()
+	local function createRanRooms() -- creates the display objects for the pre-created gridmap
     -- build map array --
 		for x = 1, 25 do -- column
 			cellb[x] = {}
@@ -169,30 +184,25 @@ local Pathfinder = require ("jumper.pathfinder") -- The pathfinder lass
 -- Creates a grid object
 local grid = Grid(map) 
 -- Creates a pathfinder object using Jump Point Search
-local myFinder = Pathfinder(grid, 'DIJKSTRA', walkable) 
+local myFinder = Pathfinder(grid, 'DIJKSTRA', walkable) -- I like DIJKSTRA, but others work too. Check the pathfinding module for more info on the types of pathfinding algorithm.
 myFinder:setMode('ORTHOGONAL')
--- Define start and goal locations coordinates
---local endx, endy = 5,15
 
 -- Calculates the path, and its length
 local path
 function callNewPath()
-path = myFinder:getPath(startx, starty, endx, endy)
-if path then
-  print(('Path found! Length: %.2f'):format(path:getLength()))
-    for node, count in path:nodes() do
-      print(('Step: %d - x: %d - y: %d'):format(count, node:getX(), node:getY()))
-	  print(node:getX())
-	  print(node:getY())
-			setX[#setX+1] = node:getX()
-			setY[#setY+1] = node:getY()
-			--cellb[node:getY()][node:getX()]:setFillColor(.5,0,.25)
-			moveCount = moveCount+1
-	  if node:getY() == 15 then
-			--cellb[15][5]:setFillColor(.5,0,.25)
-	  end
-    end
-end
+	path = myFinder:getPath(startx, starty, endx, endy)
+	if path then
+	print(('Path found! Length: %.2f'):format(path:getLength()))
+		for node, count in path:nodes() do
+		print(('Step: %d - x: %d - y: %d'):format(count, node:getX(), node:getY()))
+		print(node:getX())
+		print(node:getY())
+		setX[#setX+1] = node:getX() -- populating coordinate table on each movement
+		setY[#setY+1] = node:getY() -- populating coordinate table on each movement
+		cellb[node:getY()][node:getX()].alpha = .8 -- see the path you've chosen!
+		moveCount = moveCount+1
+		end
+	end
 end
 
 
