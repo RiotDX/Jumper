@@ -1,4 +1,4 @@
-Please note that while the below does still apply, I have modified the main.lua file and added other files so that this fork can be downloaded and/or cloned and will work right away with Corona SDK. While the modified code is far from perfect, it is useful in display how scalable the Jumper logic can be. 
+Please note that while the below does still apply, I have modified the main.lua file and added other modules so that this fork can be downloaded and/or cloned and will work right away with Corona SDK. While the modified code is far from perfect, it is useful in displaying the scalability of the Jumper logic. 
 
 
 Jumper
