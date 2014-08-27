@@ -92,7 +92,18 @@ map[1][2] = 0 -- ensure that actor has a place to start!
 			flipSize(cellb[setY[aMX]][setX[aMY]])
 			aMX = aMX+1
 			aMY = aMY+1
-			--return true
+			if setX[aMX-2] and (setX[aMX-1] > setX[aMX-2]) then
+				hero:setFillColor(1,1,0)
+			end
+			if setX[aMX+2] and (setX[aMX+1] > setX[aMX+2]) then
+				hero:setFillColor(1,0,1)
+			end
+			if setY[aMY-2] and (setY[aMY-1] > setY[aMY-2]) then
+				hero:setFillColor(.5,0,.5)
+			end
+			if setY[aMY+2] and (setY[aMY+1] > setY[aMY+2]) then
+				hero:setFillColor(0,.5,1)
+			end
 		end
 	end
 			
