@@ -205,11 +205,11 @@ function callNewPath()
 	if path then
 	print(('Path found! Length: %.2f'):format(path:getLength()))
 		for node, count in path:nodes() do
-		print(('Step: %d - x: %d - y: %d'):format(count, node.x, node.y))
-		print(node.x)
-		print(node.y)
-		setX[#setX+1] = node.x -- populating coordinate table on each movement
-		setY[#setY+1] = node.y -- populating coordinate table on each movement
+		print(('Step: %d - x: %d - y: %d'):format(count, node:getX(), node:getY()))
+		print(node:getX())
+		print(node:getY())
+		setX[#setX+1] = node:getX() -- populating coordinate table on each movement
+		setY[#setY+1] = node:getY() -- populating coordinate table on each movement
 		cellb[node:getY()][node:getX()].alpha = .8 -- see the path you've chosen!
 		moveCount = moveCount+1
 		end
