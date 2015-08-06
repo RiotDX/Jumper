@@ -3,6 +3,7 @@
 
 display.setStatusBar(display.HiddenStatusBar)
 local performance = require('performance')
+local pprint = require("pprint")
 performance:newPerformanceMeter()
 	------------------------------
 	
@@ -16,7 +17,7 @@ local touchStarted = 0 -- touch function variable
 local movingHere = false -- path-following variable
 local path -- forward declaring pathfinding variable
 local rndPlot = 0 -- randomization holder for obstacles (non-walkable tiles).
-local rndPlotH = 6 -- randomization threshold for obstacles (non-walkable tiles). 
+local rndPlotH = 66 -- randomization threshold for obstacles (non-walkable tiles). 
 local setX = {} -- x coordinate table holder for path-following
 local setY = {} -- y coordinate table holder for path-following
 local pMX = 1 -- forward declaring pathfinding variable
@@ -28,6 +29,8 @@ local moveCount = 0 -- movement counter for main timer
 local hero -- forward declaring actor variable
 local startx, starty = 1,1
 local rndSet -- forward declaring random tile population variable
+local path
+
 	local function resetVars() -- resets variables after movement is completed
 		pMX = 1
 		pMY = 1
@@ -125,12 +128,12 @@ map[1][2] = 0 -- ensure that actor has a place to start!
 				map[wRndX1+3][wRndY1+2] = 1
 				map[wRndX1+3][wRndY1+3] = 1
 				--print("cellb[wRndX1+3][wRndY1].x = "..cellb[wRndX1+3][wRndY1].x)
-				print(" 1111111111111111111111 CHANGED 1 HOLDER for "..wRndX1.." "..wRndY1)
 		end
 	end
-	for i=1, 10 do
-	createRanRooms1()
+	for i=1, 20 do
+		createRanRooms1()
 	end
+	
 			local function printLoc1(self, event) -- the magic happens. Press down to decide where the actor will go, release to watch.
 				if movingHere == false then
 					if event.phase == "began" and touchStarted == 0 then
@@ -138,7 +141,7 @@ map[1][2] = 0 -- ensure that actor has a place to start!
 						touchStarted = 1
 						callNewPath() -- pathfinding function
 					end
-					if event.phase == "ended" and touchStarted == 1 then
+					if event.phase == "ended" and touchStarted == 1 and path then
 						startx, starty = self.inity,self.initx
 						movingHere = true
 						timer.performWithDelay(timeMove, movePlayer, moveCount)
@@ -177,7 +180,13 @@ map[1][2] = 0 -- ensure that actor has a place to start!
 		end
 	end
 	createRanRooms()
-		
+
+pprint.setup {
+	level_width = 58,
+    show_all = true,
+    --wrap_array = true,
+}
+		pprint( map )
 		hero = display.newRect(cellWidth, cellHeight,cellWidth-4,cellHeight-4)
 		hero.x = 288+64
 		hero.y = 160-64
@@ -199,19 +208,24 @@ local myFinder = Pathfinder(grid, 'DIJKSTRA', walkable) -- I like DIJKSTRA, but 
 myFinder:setMode('ORTHOGONAL')
 
 -- Calculates the path, and its length
-local path
 function callNewPath()
 	path = myFinder:getPath(startx, starty, endx, endy)
-	if path then
-	print(('Path found! Length: %.2f'):format(path:getLength()))
-		for node, count in path:nodes() do
-		print(('Step: %d - x: %d - y: %d'):format(count, node:getX(), node:getY()))
-		print(node:getX())
-		print(node:getY())
-		setX[#setX+1] = node:getX() -- populating coordinate table on each movement
-		setY[#setY+1] = node:getY() -- populating coordinate table on each movement
-		cellb[node:getY()][node:getX()].alpha = .8 -- see the path you've chosen!
-		moveCount = moveCount+1
+	if path == nil then
+		print("PATH IS NIL! CLEARING VARS!")
+		resetVars() -- resetting the movement holders in the event of a non-viable path
+	else
+		if path then
+		successfulMove = true
+		print(('Path found! Length: %.2f'):format(path:getLength()))
+			for node, count in path:nodes() do
+			print(('Step: %d - x: %d - y: %d'):format(count, node:getX(), node:getY()))
+			print(node:getX())
+			print(node:getY())
+			setX[#setX+1] = node:getX() -- populating coordinate table on each movement
+			setY[#setY+1] = node:getY() -- populating coordinate table on each movement
+			cellb[node:getY()][node:getX()].alpha = .8 -- see the path you've chosen!
+			moveCount = moveCount+1
+			end
 		end
 	end
 end
